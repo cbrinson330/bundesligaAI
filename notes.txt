@@ -1,0 +1,60 @@
+Random Notes
+------------------
+It's a classification problem. 
+Data should show all data for each team and their opponent and should output a category of 1 or 2  or 3 for the primary team 1 for win 2 for loss 3 for a tie. 
+The model can then be flipped for the other team and tested.
+
+rule of thumb is need 10x number of training data as parameters.
+
+parameters:
+- temperature on game day
+- Parcipitation on game day [0,0,1] rain, snow, clear
+- team1 games won against team 2 in the last 2 years
+- team1 games won this year
+- team2 games won this year
+- team1 goals scored this year
+- team2 goals scored this year
+- team1 goals allowed this year
+- team2 goals allowed this year
+- team1 goals scored this season against team2 (-1 if not played this year)
+- team2 goals scored this season against team1 (-1 if not played this year)
+
+need 120 datapoints to train data on
+
+https://www.openligadb.de/api/getmatchdata/bl1/2015 to get full year of games.
+https://docs.python.org/3/library/xml.etree.elementtree.html
+https://docs.python.org/3/library/sqlite3.html
+
+Need to re-create wins and losses ties per team at the time of each game for that year.
+
+1) Would be good to get Amount of money each team payed for it's players
+    - Also good to know amount for each player (if for example Ian Robin cost significantly more he should have a higher impact on the game)
+2) Would be nice to get historical weather info for each game (temperature, percipitation wind level.)
+3) Get historical matchups for teams last year and this year
+4) Would be good to get lists of players that are injured
+5) need to keep a list of predictions and compare to actual outcomes of games by version of algoryhim/training
+6) don't include any info you wont have for next games.
+
+
+not sure if I need machine learning for this or if a simpler algorithm would suffice
+not sure if it would make sense to store everything in a Database. yes I think I should use a databse
+
+
+Teams table {
+  id: int;
+  name: string;
+}
+
+game table {
+  season: Int;
+  date: datetime
+  team1: id(team, this should always be the home team);
+  team2: id(team);
+  wind: int (wind speed in kph)
+  temp: int (temp in C)
+  percip: String (none, rain, snow)
+  team1Goals: int(goals for team 1);
+  team2Goals: int(goals for team 2);
+}
+
+
