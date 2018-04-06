@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 import sqlite3
 from dateutil import parser
 
-class match():
+class matchCls():
   def __init__(self, matchDate, matchId, teamOneName, teamTwoName, teamOneGoals, teamTwoGoals, location):
     self.matchDate = matchDate
     self.teamOneName = teamOneName
@@ -43,6 +43,7 @@ def exploreFile():
   tree = ET.parse('data/2015.xml')
   root = tree.getroot()
   for match in root:
+    print(match)
     matchDate = parser.parse(match[6].text)
     teamOneName = match[12][0].text
     teamTwoName = match[13][0].text
@@ -52,9 +53,9 @@ def exploreFile():
     if match[5].attrib:
       location = ''
     else:
-      location = match[5][1]
-    
-    matchObj = match(matchDate, matchId, teamOneName, teamTwoName, teamOneGoals, teamTwoGoals, location)
+      location = match[5][1].text
+
+    matchObj = matchCls(matchDate, matchId, teamOneName, teamTwoName, teamOneGoals, teamTwoGoals, location)
 
     conn = sqlite3.connect('matches.db')
     c = conn.cursor()
@@ -64,7 +65,7 @@ def exploreFile():
 
 
 def insertMatch(match, c):
-  cursor.execute("INSERT INTO match VALUES ("+match.teamOneName+")")
+  cursor.execute('INSERT INTO match VALUES ("'+match.teamOneName+'")')
   #id INTEGER PRIMARY KEY AUTOINCREMENT, 
   #season YEAR, 
   #date DATETIME, 
@@ -75,7 +76,7 @@ def insertMatch(match, c):
   #team1Goals TINYINT, 
   #team2Goals TINYINT
 
-def checkIfTeamsExist(teamOneName, TeamTwoName, cursor):
+def checkIfTeamsExist(teamOneName, teamTwoName, cursor):
   teams = cursor.execute('''SELECT name FROM teams''')
   teamOneExists = False
   teamTwoExists = False
@@ -88,9 +89,9 @@ def checkIfTeamsExist(teamOneName, TeamTwoName, cursor):
       teamTwoExists = True
   
   if not teamOneExists:
-    cursor.execute("INSERT INTO team VALUES ("+teamOneName+")")
+    cursor.execute('INSERT INTO team VALUES (0,"'+teamOneName+'")')
   if not teamTwoExists:
-    cursor.execute("INSERT INTO team VALUES ("+teamTwoName+")")
+    cursor.execute('INSERT INTO team VALUES (0,"'+teamTwoName+'")')
 
 
 def createTables(conn, cursor):
