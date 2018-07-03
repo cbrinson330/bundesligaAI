@@ -104,10 +104,45 @@ def exploreFile():
         insertMatch(matchObj,c)
 
   print('Number of games ' + str(numberOfGames))
-
+  populateHistoricalValues(c)
 
 def insertMatch(match, cursor):
   cursor.execute(match.query)
+  #Get previous games this season
+
+def populateHistoricalValues(cursor):
+  cursor.execute('''SELECT * FROM team''')
+  allTeams = cursor.fetchall()
+  for team in allTeams:
+    teamId = str(team[0])
+    print('teamId: '+teamId +'('+team[1]+')')
+    cursor.execute('SELECT * FROM match WHERE team1 = ' + teamId + ' OR team2 =' + teamId)
+    allGamesForTeam = cursor.fetchall()
+
+    for gameData in allGamesForTeam:
+      if gameData[3] == teamId:
+        opponent = gameData[4]
+      else:
+        opponent = gameData[3]
+      year = gameData[1]
+      
+      for gameDataB in allGamesForTeam:
+
+        #Don't count same game
+        if gameData[0] != gameDataB[0]:
+
+          #check if is same season
+          if year == gameDataB[1]:
+            print('placeholder')
+            #TODO check if game date is prior to target game if so update WLT totals
+
+          #check if is any season against the same opponent
+          if gameData[3] == opponent || gameData[4] == opponent:
+            print('placeholder')
+            #TODO update lifetime record against opponent
+
+      print(game)
+    
 
 def checkIfTeamsExist(teamOneName, teamOneId, teamTwoName, teamTwoId, cursor):
   teams = cursor.execute('''SELECT * FROM team''')
