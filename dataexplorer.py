@@ -70,7 +70,19 @@ class matchCls():
     query += self.teamOneResult+','
     query += self.teamTwoResult+','
     query += self.teamOneGoals+','
-    query += self.teamTwoGoals+')'
+    query += self.teamTwoGoals+','
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0)'
     return query
 
 def exploreFile():
@@ -144,21 +156,24 @@ def populateHistoricalValues(cursor):
 
           #check if is same season
           if year == gameDataB[1]:
+            print(gameDataB)
             if gameBDate < date:
               if teamId == gameDataB[3]:
                 # Is Home game
+                print('is home')
                 seasonGameResult = gameDataB[8]
               if teamId == gameDataB[4]:
                 #Is Away Game
+                print('is away')
                 seasonGameResult = gameDataB[9]
 
-            #2 = win, 1 = tie, 0 = loss
-            if seasonGameResult == 2:
-              seasonWins += 1
-            elif seasonGameResult == 1:
-              seasonTie += 1
-            elif result == 0:
-              seasonLoss += 1
+              #2 = win, 1 = tie, 0 = loss
+              if seasonGameResult == 2:
+                seasonWins += 1
+              elif seasonGameResult == 1:
+                seasonTie += 1
+              elif seasonGameResult == 0:
+                seasonLoss += 1
 
           #check if is any season against the same opponent
           if gameData[3] == opponent:
@@ -178,7 +193,7 @@ def populateHistoricalValues(cursor):
             lifetimeLoss += 1
 
       if isHomeTeam:
-        c.execute('''UPDATE match SET team1SeasonWins = ?,
+        cursor.execute('''UPDATE match SET team1SeasonWins = ?,
                                       team1SeasonLoss = ?,
                                       team1SeasonTie = ?,
                                       team1LifetimeOppWins = ?,
@@ -190,10 +205,23 @@ def populateHistoricalValues(cursor):
                                   lifetimeTie,
                                   seasonWins,
                                   seasonTie,
-                                  seasonLoss))
+                                  seasonLoss,
+                                  gameData[0]))
       else:
-        c.execute('''''')
-      this is a test
+        cursor.execute('''UPDATE match SET team2SeasonWins = ?,
+                                      team2SeasonLoss = ?,
+                                      team2SeasonTie = ?,
+                                      team2LifetimeOppWins = ?,
+                                      team2LifetimeOppLoss = ?,
+                                      team2LifetimeOppTie = ?
+                                  WHERE id = ?''',
+                                  (lifetimeWins,
+                                  lifetimeLoss,
+                                  lifetimeTie,
+                                  seasonWins,
+                                  seasonTie,
+                                  seasonLoss,
+                                  gameData[0]))
 
 def checkIfTeamsExist(teamOneName, teamOneId, teamTwoName, teamTwoId, cursor):
   teams = cursor.execute('''SELECT * FROM team''')
