@@ -121,28 +121,79 @@ def populateHistoricalValues(cursor):
 
     for gameData in allGamesForTeam:
       if gameData[3] == teamId:
+        isHomeTeam = True
         opponent = gameData[4]
       else:
+        isHomeTeam = False
         opponent = gameData[3]
+
       year = gameData[1]
+      date = gameData[2]
+      lifetimeWins = 0
+      lifetimeLoss = 0
+      lifetimeTie = 0
+      seasonWins = 0
+      seasonTie = 0
+      seasonLoss = 0
       
       for gameDataB in allGamesForTeam:
+        gameBDate = gameDataB[2]
 
         #Don't count same game
         if gameData[0] != gameDataB[0]:
 
           #check if is same season
           if year == gameDataB[1]:
-            print('placeholder')
-            #TODO check if game date is prior to target game if so update WLT totals
+            if gameBDate < date:
+              if teamId == gameDataB[3]:
+                # Is Home game
+                seasonGameResult = gameDataB[8]
+              if teamId == gameDataB[4]:
+                #Is Away Game
+                seasonGameResult = gameDataB[9]
+
+            #2 = win, 1 = tie, 0 = loss
+            if seasonGameResult == 2:
+              seasonWins += 1
+            elif seasonGameResult == 1:
+              seasonTie += 1
+            elif result == 0:
+              seasonLoss += 1
 
           #check if is any season against the same opponent
-          if gameData[3] == opponent || gameData[4] == opponent:
-            print('placeholder')
-            #TODO update lifetime record against opponent
+          if gameData[3] == opponent:
+            #is away game
+            result = gameData[9]
 
-      print(game)
-    
+          elif gameData[4] == opponent:
+            #is home game
+            result = gameData[8]
+
+          #2 = win, 1 = tie, 0 = loss
+          if result == 2:
+            lifetimeWins += 1
+          elif result == 1:
+            lifetimeTie += 1
+          elif result == 0:
+            lifetimeLoss += 1
+
+      if isHomeTeam:
+        c.execute('''UPDATE match SET team1SeasonWins = ?,
+                                      team1SeasonLoss = ?,
+                                      team1SeasonTie = ?,
+                                      team1LifetimeOppWins = ?,
+                                      team1LifetimeOppLoss = ?,
+                                      team1LifetimeOppTie = ?
+                                  WHERE id = ?''',
+                                  (lifetimeWins,
+                                  lifetimeLoss,
+                                  lifetimeTie,
+                                  seasonWins,
+                                  seasonTie,
+                                  seasonLoss))
+      else:
+        c.execute('''''')
+      this is a test
 
 def checkIfTeamsExist(teamOneName, teamOneId, teamTwoName, teamTwoId, cursor):
   teams = cursor.execute('''SELECT * FROM team''')
@@ -164,7 +215,30 @@ def checkIfTeamsExist(teamOneName, teamOneId, teamTwoName, teamTwoId, cursor):
     cursor.executemany('INSERT INTO team VALUES (?,?)', teamToInsert)
 
 def createTables(conn, cursor):
-  cursor.execute('''CREATE TABLE IF NOT EXISTS match (id INTEGER PRIMARY KEY AUTOINCREMENT, season YEAR, date DATETIME, team1 TINYINT, team2 TINYINT, wind TINYINT, percip TINYTEXT, temp TINYINT, team1Result TINYINT, team2Result TINYINT, team1Goals TINYINT, team2Goals TINYINT)''')
+  cursor.execute('''CREATE TABLE IF NOT EXISTS match (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                                                      season YEAR, 
+                                                      date DATETIME, 
+                                                      team1 TINYINT, 
+                                                      team2 TINYINT, 
+                                                      wind TINYINT, 
+                                                      percip TINYTEXT, 
+                                                      temp TINYINT, 
+                                                      team1Result TINYINT, 
+                                                      team2Result TINYINT, 
+                                                      team1Goals TINYINT, 
+                                                      team2Goals TINYINT, 
+                                                      team1SeasonWins TINYINT,
+                                                      team2SeasonWins TINYINT,
+                                                      team1SeasonLoss TINYINT,
+                                                      team2SeasonLoss TINYINT,
+                                                      team1SeasonTie TINYINT,
+                                                      team2SeasonTie TINYINT,
+                                                      team1LifetimeOppWins TINYINT,
+                                                      team2LifetimeOppWins TINYINT,
+                                                      team1LifetimeOppLoss TINYINT,
+                                                      team2LifetimeOppLoss TINYINT,
+                                                      team1LifetimeOppTie TINYINT,
+                                                      team2LifetimeOppTie TINYINT)''')
   cursor.execute('''CREATE TABLE IF NOT EXISTS team (id INTEGER PRIMARY KEY AUTOINCREMENT, name TINYTEXT)''')
 
 if __name__ == "__main__":
