@@ -4,6 +4,7 @@ import fileinput
 import xml.etree.ElementTree as ET
 import sqlite3
 from dateutil import parser
+from datetime import datetime as dt
 
 class matchCls():
   def __init__(self, matchDate, matchId, teamOneName, teamOneId, teamTwoName, teamTwoId, teamOneGoals, teamTwoGoals, location, season):
@@ -58,6 +59,12 @@ class matchCls():
     #team2Result TINYINT, 
     #team1Goals TINYINT, 
     #team2Goals TINYINT
+    #team1SeasonOppWins TINYINT,
+    #team2SeasonOppWins TINYINT,
+    #team1SeasonOppLoss TINYINT,
+    #team2SeasonOppLoss TINYINT,
+    #team1SeasonOppTie TINYINT,
+    #team2SeasonOppTie TINYINT,
     query = 'INSERT INTO match VALUES'
     query += '('+self.matchId+','
     query += '"'+self.season+'",'
@@ -71,6 +78,12 @@ class matchCls():
     query += self.teamTwoResult+','
     query += self.teamOneGoals+','
     query += self.teamTwoGoals+','
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
     query += '0,'
     query += '0,'
     query += '0,'
@@ -127,7 +140,7 @@ def populateHistoricalValues(cursor):
   allTeams = cursor.fetchall()
   for team in allTeams:
     teamId = str(team[0])
-    print('teamId: '+teamId +'('+team[1]+')')
+    # print('teamId: '+teamId +'('+team[1]+')')
     cursor.execute('SELECT * FROM match WHERE team1 = ' + teamId + ' OR team2 =' + teamId)
     allGamesForTeam = cursor.fetchall()
 
@@ -140,31 +153,32 @@ def populateHistoricalValues(cursor):
         opponent = gameData[3]
 
       year = gameData[1]
-      date = gameData[2]
+      date = dt.strptime(gameData[2], "%Y-%m-%d")
+      # date = gameData[2]
       lifetimeWins = 0
       lifetimeLoss = 0
       lifetimeTie = 0
       seasonWins = 0
       seasonTie = 0
       seasonLoss = 0
+      seasonOpponentWins = 0
+      seasonOpponentTies = 0
+      seasonOpponentLoss = 0
       
       for gameDataB in allGamesForTeam:
-        gameBDate = gameDataB[2]
+        gameBDate = dt.strptime(gameDataB[2], "%Y-%m-%d")
 
         #Don't count same game
         if gameData[0] != gameDataB[0]:
 
           #check if is same season
           if year == gameDataB[1]:
-            print(gameDataB)
             if gameBDate < date:
-              if teamId == gameDataB[3]:
+              if int(teamId) == int(gameDataB[3]):
                 # Is Home game
-                print('is home')
                 seasonGameResult = gameDataB[8]
-              if teamId == gameDataB[4]:
+              if int(teamId) == int(gameDataB[4]):
                 #Is Away Game
-                print('is away')
                 seasonGameResult = gameDataB[9]
 
               #2 = win, 1 = tie, 0 = loss
@@ -174,6 +188,21 @@ def populateHistoricalValues(cursor):
                 seasonTie += 1
               elif seasonGameResult == 0:
                 seasonLoss += 1
+
+              # Get current season reccord against current opponent
+              if gameData[3] == opponent:
+                res = gameData[9]
+                #is Away Game
+              elif gameData[4] == opponent:
+                res = gaeData[8]
+              
+              #2 = win, 1 = tie, 0 = loss
+              if res == 2:
+                seasonOpponentWins += 1
+              elif res == 1:
+                seasonOpponentTies += 1
+              elif res == 0:
+                seasonOpponentLoss += 1
 
           #check if is any season against the same opponent
           if gameData[3] == opponent:
@@ -194,33 +223,45 @@ def populateHistoricalValues(cursor):
 
       if isHomeTeam:
         cursor.execute('''UPDATE match SET team1SeasonWins = ?,
-                                      team1SeasonLoss = ?,
                                       team1SeasonTie = ?,
+                                      team1SeasonLoss = ?,
+                                      team1SeasonOppWins = ?,
+                                      team1SeasonOppTie = ?,
+                                      team1SeasonOppLoss = ?
                                       team1LifetimeOppWins = ?,
-                                      team1LifetimeOppLoss = ?,
-                                      team1LifetimeOppTie = ?
+                                      team1LifetimeOppTie = ?,
+                                      team1LifetimeOppLoss = ?
                                   WHERE id = ?''',
-                                  (lifetimeWins,
-                                  lifetimeLoss,
-                                  lifetimeTie,
-                                  seasonWins,
+                                  (seasonWins,
                                   seasonTie,
                                   seasonLoss,
+                                  seasonOpponentWins,
+                                  seasonOpponentTies,
+                                  seasonOpponentLoss,
+                                  lifetimeWins,
+                                  lifetimeTie,
+                                  lifetimeLoss,
                                   gameData[0]))
       else:
         cursor.execute('''UPDATE match SET team2SeasonWins = ?,
-                                      team2SeasonLoss = ?,
                                       team2SeasonTie = ?,
+                                      team2SeasonLoss = ?,
+                                      team2SeasonOppWins = ?,
+                                      team2SeasonOppTie = ?,
+                                      team2SeasonOppLoss = ?,
                                       team2LifetimeOppWins = ?,
-                                      team2LifetimeOppLoss = ?,
-                                      team2LifetimeOppTie = ?
+                                      team2LifetimeOppTie = ?,
+                                      team2LifetimeOppLoss = ?
                                   WHERE id = ?''',
-                                  (lifetimeWins,
-                                  lifetimeLoss,
-                                  lifetimeTie,
-                                  seasonWins,
+                                  (seasonWins,
                                   seasonTie,
                                   seasonLoss,
+                                  seasonOpponentWins,
+                                  seasonOpponentTies,
+                                  seasonOpponentLoss,
+                                  lifetimeWins,
+                                  lifetimeTie,
+                                  lifetimeLoss,
                                   gameData[0]))
 
 def checkIfTeamsExist(teamOneName, teamOneId, teamTwoName, teamTwoId, cursor):
@@ -261,6 +302,12 @@ def createTables(conn, cursor):
                                                       team2SeasonLoss TINYINT,
                                                       team1SeasonTie TINYINT,
                                                       team2SeasonTie TINYINT,
+                                                      team1SeasonOppWins TINYINT,
+                                                      team2SeasonOppWins TINYINT,
+                                                      team1SeasonOppLoss TINYINT,
+                                                      team2SeasonOppLoss TINYINT,
+                                                      team1SeasonOppTie TINYINT,
+                                                      team2SeasonOppTie TINYINT,
                                                       team1LifetimeOppWins TINYINT,
                                                       team2LifetimeOppWins TINYINT,
                                                       team1LifetimeOppLoss TINYINT,
