@@ -95,6 +95,16 @@ class matchCls():
     query += '0,'
     query += '0,'
     query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
+    query += '0,'
     query += '0)'
     return query
 
@@ -164,6 +174,12 @@ def populateHistoricalValues(cursor):
       seasonOpponentWins = 0
       seasonOpponentTies = 0
       seasonOpponentLoss = 0
+      lifetimeGoalsScoredOpponent = 0
+      lifetimeGoalsAllowedOpponent = 0
+      goalsAllowedThisSeason = 0
+      goalsScoredThisSeason = 0
+      goalsScoredThisSeasonOpponent = 0
+      goalsAllowedThisSeasonOpponent = 0
       
       for gameDataB in allGamesForTeam:
         gameBDate = dt.strptime(gameDataB[2], "%Y-%m-%d")
@@ -177,9 +193,14 @@ def populateHistoricalValues(cursor):
               if int(teamId) == int(gameDataB[3]):
                 # Is Home game
                 seasonGameResult = gameDataB[8]
+                goalsAllowedThisSeason += gameData[10]
+                goalsScoredThisSeason += gameData[11]
+
               if int(teamId) == int(gameDataB[4]):
                 #Is Away Game
                 seasonGameResult = gameDataB[9]
+                goalsAllowedThisSeason += gameData[11]
+                goalsScoredThisSeason += gameData[10]
 
               #2 = win, 1 = tie, 0 = loss
               if seasonGameResult == 2:
@@ -191,10 +212,15 @@ def populateHistoricalValues(cursor):
 
               # Get current season reccord against current opponent
               if gameData[3] == opponent:
-                res = gameData[9]
                 #is Away Game
+                res = gameData[9]
+                goalsAllowedThisSeasonOpponent += gameData[11]
+                goalsScoredThisSeasonOpponent += gameData[10]
               elif gameData[4] == opponent:
+                #is Home Game
                 res = gaeData[8]
+                goalsAllowedThisSeasonOpponent += gameData[10]
+                goalsScoredThisSeasonOpponent += gameData[11]
               
               #2 = win, 1 = tie, 0 = loss
               if res == 2:
@@ -208,10 +234,14 @@ def populateHistoricalValues(cursor):
           if gameData[3] == opponent:
             #is away game
             result = gameData[9]
+            lifetimeGoalsAllowedOpponent += gameData[11]
+            lifetimeGoalsScoredOpponent += gameData[10]
 
           elif gameData[4] == opponent:
             #is home game
             result = gameData[8]
+            lifetimeGoalsAllowedOpponent += gameData[10]
+            lifetimeGoalsScoredOpponent += gameData[11]
 
           #2 = win, 1 = tie, 0 = loss
           if result == 2:
@@ -295,7 +325,17 @@ def createTables(conn, cursor):
                                                       team1Result TINYINT, 
                                                       team2Result TINYINT, 
                                                       team1Goals TINYINT, 
-                                                      team2Goals TINYINT, 
+                                                      team2Goals TINYINT,
+                                                      team1GoalsScoredThisSeason TINYINT,
+                                                      team2GoalsScoredThisSeason TINYINT,
+                                                      team1GoalsAllowedThisSeason TINYINT,
+                                                      team2GoalsAllowedThisSeason TINYINT,
+                                                      team1GoalsScoredThisSeasonOpponent TINYINT,
+                                                      team2GoalsScoredThisSeasonOpponent TINYINT,
+                                                      team1GoalsAllowedThisSeasonOpponent TINYINT,
+                                                      team2GoalsAllowedThisSeasonOpponent TINYINT,
+                                                      team1LifetimeGoalsScoredOpponent TINYINT,
+                                                      team2LifetimeGoalsScoredOpponent TINYINT,
                                                       team1SeasonWins TINYINT,
                                                       team2SeasonWins TINYINT,
                                                       team1SeasonLoss TINYINT,
