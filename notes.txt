@@ -61,4 +61,51 @@ Build
 --------
 Opening virtualenv "source ~/tensorflow/venv/bin/activate"
 
+[0] id INTEGER PRIMARY KEY AUTOINCREMENT, 
+[1] season YEAR, 
+[2] date DATETIME, 
+[3] team1 TINYINT, 
+[4] team2 TINYINT, 
+[5] wind TINYINT, 
+[6] percip TINYTEXT, 
+[7] temp TINYINT, 
+[8] team1Result TINYINT, 
+[9] team2Result TINYINT, 
+[10] team1Goals TINYINT, 
+[11] team2Goals TINYINT,
+[12] team1GoalsScoredThisSeason TINYINT,
+[13] team2GoalsScoredThisSeason TINYINT,
+[14] team1GoalsAllowedThisSeason TINYINT,
+[15] team2GoalsAllowedThisSeason TINYINT,
+[16] team1GoalsScoredThisSeasonOpponent TINYINT,
+[17] team2GoalsScoredThisSeasonOpponent TINYINT,
+[18] team1GoalsAllowedThisSeasonOpponent TINYINT,
+[19] team2GoalsAllowedThisSeasonOpponent TINYINT,
+[20] team1LifetimeGoalsScoredOpponent TINYINT,
+[21] team2LifetimeGoalsScoredOpponent TINYINT,
+[22] team1LifetimeGoalsAllowedOpponent TINYINT,
+[23] team2LifetimeGoalsAllowedOpponent TINYINT,
+[24] team1SeasonWins TINYINT,
+[25] team2SeasonWins TINYINT,
+[26] team1SeasonLoss TINYINT,
+[27] team2SeasonLoss TINYINT,
+[28] team1SeasonTie TINYINT,
+[29] team2SeasonTie TINYINT,
+[30] team1SeasonOppWins TINYINT,
+[31] team2SeasonOppWins TINYINT,
+[32] team1SeasonOppLoss TINYINT,
+[33] team2SeasonOppLoss TINYINT,
+[34] team1SeasonOppTie TINYINT,
+[35] team2SeasonOppTie TINYINT,
+[36] team1LifetimeOppWins TINYINT,
+[37] team2LifetimeOppWins TINYINT,
+[38] team1LifetimeOppLoss TINYINT,
+[39] team2LifetimeOppLoss TINYINT,
+[40] team1LifetimeOppTie TINYINT,
+[41] team2LifetimeOppTie TINYINT)''')
 
+
+12 - 21 are empty WHY!?!?!?!?! 
+Because you're an idiot. 
+You have to actually add the values to the database. 
+Look at line 243 = 280
