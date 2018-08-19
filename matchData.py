@@ -15,7 +15,12 @@ def load_data():
   conn = sqlite3.connect('matches.db')
   cursor = conn.cursor()
   cursor.execute('SELECT * FROM match)
+
   allGames = cursor.fetchall()
+  team1goalsScoredThisSeason = []
+  team2goalsAllowedThisSeason = []
+
+
   for game in allGames:
     
 

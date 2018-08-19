@@ -17,7 +17,7 @@ class matchCls():
     self.teamTwoGoals = teamTwoGoals
     self.matchId = matchId
     self.location = location
-    self.wind = '12'
+    self.wind = '0'
     self.percip = 'None'
     self.temp = '0'
     self.season = season
@@ -47,24 +47,6 @@ class matchCls():
     return teamTwoResult
 
   def createSQLQuery(self):
-    #id INTEGER PRIMARY KEY AUTOINCREMENT, 
-    #season YEAR, 
-    #date DATETIME, 
-    #team1 TINYINT, 
-    #team2 TINYINT, 
-    #wind TINYINT, 
-    #percip TINYTEXT, 
-    #temp TINYINT, 
-    #team1Result TINYINT, 
-    #team2Result TINYINT, 
-    #team1Goals TINYINT, 
-    #team2Goals TINYINT
-    #team1SeasonOppWins TINYINT,
-    #team2SeasonOppWins TINYINT,
-    #team1SeasonOppLoss TINYINT,
-    #team2SeasonOppLoss TINYINT,
-    #team1SeasonOppTie TINYINT,
-    #team2SeasonOppTie TINYINT,
     query = 'INSERT INTO match VALUES'
     query += '('+self.matchId+','
     query += '"'+self.season+'",'
@@ -78,6 +60,8 @@ class matchCls():
     query += self.teamTwoResult+','
     query += self.teamOneGoals+','
     query += self.teamTwoGoals+','
+    query += '0,'
+    query += '0,'
     query += '0,'
     query += '0,'
     query += '0,'
@@ -140,6 +124,9 @@ def exploreFile():
 
   print('Number of games ' + str(numberOfGames))
   populateHistoricalValues(c)
+  reviewData(c)
+  conn.commit()
+  conn.close()
 
 def insertMatch(match, cursor):
   cursor.execute(match.query)
@@ -148,12 +135,11 @@ def insertMatch(match, cursor):
 def populateHistoricalValues(cursor):
   cursor.execute('''SELECT * FROM team''')
   allTeams = cursor.fetchall()
+  printTeamInfo = True
   for team in allTeams:
     teamId = str(team[0])
-    # print('teamId: '+teamId +'('+team[1]+')')
     cursor.execute('SELECT * FROM match WHERE team1 = ' + teamId + ' OR team2 =' + teamId)
     allGamesForTeam = cursor.fetchall()
-
     for gameData in allGamesForTeam:
       if gameData[3] == teamId:
         isHomeTeam = True
@@ -182,6 +168,7 @@ def populateHistoricalValues(cursor):
       goalsAllowedThisSeasonOpponent = 0
       
       for gameDataB in allGamesForTeam:
+
         gameBDate = dt.strptime(gameDataB[2], "%Y-%m-%d")
 
         #Don't count same game
@@ -193,14 +180,14 @@ def populateHistoricalValues(cursor):
               if int(teamId) == int(gameDataB[3]):
                 # Is Home game
                 seasonGameResult = gameDataB[8]
-                goalsAllowedThisSeason += gameData[10]
-                goalsScoredThisSeason += gameData[11]
+                goalsAllowedThisSeason += gameDataB[10]
+                goalsScoredThisSeason += gameDataB[11]
 
               if int(teamId) == int(gameDataB[4]):
                 #Is Away Game
                 seasonGameResult = gameDataB[9]
-                goalsAllowedThisSeason += gameData[11]
-                goalsScoredThisSeason += gameData[10]
+                goalsAllowedThisSeason += gameDataB[11]
+                goalsScoredThisSeason += gameDataB[10]
 
               #2 = win, 1 = tie, 0 = loss
               if seasonGameResult == 2:
@@ -210,17 +197,19 @@ def populateHistoricalValues(cursor):
               elif seasonGameResult == 0:
                 seasonLoss += 1
 
+              res = None
               # Get current season reccord against current opponent
-              if gameData[3] == opponent:
+              if int(gameDataB[4]) == int(teamId):
                 #is Away Game
-                res = gameData[9]
-                goalsAllowedThisSeasonOpponent += gameData[11]
-                goalsScoredThisSeasonOpponent += gameData[10]
-              elif gameData[4] == opponent:
+                res = gameDataB[9]
+                goalsAllowedThisSeasonOpponent += int(gameDataB[11])
+                goalsScoredThisSeasonOpponent += int(gameDataB[10])
+
+              elif int(gameDataB[3]) == int(teamId):
                 #is Home Game
-                res = gaeData[8]
-                goalsAllowedThisSeasonOpponent += gameData[10]
-                goalsScoredThisSeasonOpponent += gameData[11]
+                res = gameDataB[8]
+                goalsAllowedThisSeasonOpponent += int(gameDataB[10])
+                goalsScoredThisSeasonOpponent += int(gameDataB[11])
               
               #2 = win, 1 = tie, 0 = loss
               if res == 2:
@@ -231,38 +220,53 @@ def populateHistoricalValues(cursor):
                 seasonOpponentLoss += 1
 
           #check if is any season against the same opponent
-          if gameData[3] == opponent:
-            #is away game
-            result = gameData[9]
-            lifetimeGoalsAllowedOpponent += gameData[11]
-            lifetimeGoalsScoredOpponent += gameData[10]
+          result = None
+          if gameBDate < date:
+            if int(gameDataB[4]) == int(teamId):
+              # is away game
+              result = gameDataB[9]
+              lifetimeGoalsAllowedOpponent += int(gameDataB[11])
+              lifetimeGoalsScoredOpponent += int(gameDataB[10])
 
-          elif gameData[4] == opponent:
-            #is home game
-            result = gameData[8]
-            lifetimeGoalsAllowedOpponent += gameData[10]
-            lifetimeGoalsScoredOpponent += gameData[11]
+            elif int(gameDataB[3]) == int(teamId):
+              #is home game
+              result = gameData[8]
+              lifetimeGoalsAllowedOpponent += int(gameDataB[10])
+              lifetimeGoalsScoredOpponent += int(gameDataB[11])
 
-          #2 = win, 1 = tie, 0 = loss
-          if result == 2:
-            lifetimeWins += 1
-          elif result == 1:
-            lifetimeTie += 1
-          elif result == 0:
-            lifetimeLoss += 1
+            #2 = win, 1 = tie, 0 = loss
+            if result == 2:
+              lifetimeWins += 1
+            elif result == 1:
+              lifetimeTie += 1
+            elif result == 0:
+              lifetimeLoss += 1
 
-      if isHomeTeam:
-        cursor.execute('''UPDATE match SET team1SeasonWins = ?,
+      if int(gameData[3]) == int(teamId):
+        cursor.execute('''UPDATE match SET 
+                                      team1GoalsScoredThisSeason = ?,
+                                      team1GoalsAllowedThisSeason = ?,
+                                      team1GoalsScoredThisSeasonOpponent = ?,
+                                      team1GoalsAllowedThisSeasonOpponent = ?,
+                                      team1LifetimeGoalsScoredOpponent = ?,
+                                      team1LifetimeGoalsAllowedOpponent = ?,
+                                      team1SeasonWins = ?,
                                       team1SeasonTie = ?,
                                       team1SeasonLoss = ?,
                                       team1SeasonOppWins = ?,
                                       team1SeasonOppTie = ?,
-                                      team1SeasonOppLoss = ?
+                                      team1SeasonOppLoss = ?,
                                       team1LifetimeOppWins = ?,
                                       team1LifetimeOppTie = ?,
                                       team1LifetimeOppLoss = ?
                                   WHERE id = ?''',
-                                  (seasonWins,
+                                  (goalsScoredThisSeason,
+                                  goalsAllowedThisSeason,
+                                  goalsScoredThisSeasonOpponent,
+                                  goalsAllowedThisSeasonOpponent,
+                                  lifetimeGoalsScoredOpponent,
+                                  lifetimeGoalsAllowedOpponent,
+                                  seasonWins,
                                   seasonTie,
                                   seasonLoss,
                                   seasonOpponentWins,
@@ -272,8 +276,15 @@ def populateHistoricalValues(cursor):
                                   lifetimeTie,
                                   lifetimeLoss,
                                   gameData[0]))
-      else:
-        cursor.execute('''UPDATE match SET team2SeasonWins = ?,
+      elif int(gameData[4]) == int(teamId):
+        cursor.execute('''UPDATE match SET 
+                                      team2GoalsScoredThisSeason = ?,
+                                      team2GoalsAllowedThisSeason = ?,
+                                      team2GoalsScoredThisSeasonOpponent = ?,
+                                      team2GoalsAllowedThisSeasonOpponent = ?,
+                                      team2LifetimeGoalsScoredOpponent = ?,
+                                      team2LifetimeGoalsAllowedOpponent = ?,
+                                      team2SeasonWins = ?,
                                       team2SeasonTie = ?,
                                       team2SeasonLoss = ?,
                                       team2SeasonOppWins = ?,
@@ -283,7 +294,13 @@ def populateHistoricalValues(cursor):
                                       team2LifetimeOppTie = ?,
                                       team2LifetimeOppLoss = ?
                                   WHERE id = ?''',
-                                  (seasonWins,
+                                  (goalsScoredThisSeason,
+                                  goalsAllowedThisSeason,
+                                  goalsScoredThisSeasonOpponent,
+                                  goalsAllowedThisSeasonOpponent,
+                                  lifetimeGoalsScoredOpponent,
+                                  lifetimeGoalsAllowedOpponent,
+                                  seasonWins,
                                   seasonTie,
                                   seasonLoss,
                                   seasonOpponentWins,
@@ -313,6 +330,13 @@ def checkIfTeamsExist(teamOneName, teamOneId, teamTwoName, teamTwoId, cursor):
     teamToInsert = [(teamTwoId,teamTwoName)]
     cursor.executemany('INSERT INTO team VALUES (?,?)', teamToInsert)
 
+def reviewData(cursor):
+  cursor.execute('SELECT * FROM match LIMIT 10 offset 1000')
+
+  someGames = cursor.fetchall()
+  for game in someGames:
+    print(game)
+
 def createTables(conn, cursor):
   cursor.execute('''CREATE TABLE IF NOT EXISTS match (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                                                       season YEAR, 
@@ -336,6 +360,8 @@ def createTables(conn, cursor):
                                                       team2GoalsAllowedThisSeasonOpponent TINYINT,
                                                       team1LifetimeGoalsScoredOpponent TINYINT,
                                                       team2LifetimeGoalsScoredOpponent TINYINT,
+                                                      team1LifetimeGoalsAllowedOpponent TINYINT,
+                                                      team2LifetimeGoalsAllowedOpponent TINYINT,
                                                       team1SeasonWins TINYINT,
                                                       team2SeasonWins TINYINT,
                                                       team1SeasonLoss TINYINT,
