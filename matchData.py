@@ -1,16 +1,10 @@
 import sqlite3
 import tensorflow as tf
 import numpy as np
+from dateutil import parser
+from datetime import datetime as dt
 
-
-# TODO update load_data function to work
-# Need to get to something like this
-# features = {'SepalLength': np.array([6.4, 5.0]),
-#                'SepalWidth':  np.array([2.8, 2.3]),
-#                'PetalLength': np.array([5.6, 3.3]),
-#                'PetalWidth':  np.array([2.2, 1.0])}
-#    labels = np.array([2, 1])
-#    return features, labels
+OUTCOMES = ['Loss', 'Tie', 'Win']
 
 def load_data():
   """Returns the iris dataset as (train_x, train_y), (test_x, test_y)."""
@@ -21,139 +15,143 @@ def load_data():
   allGames = cursor.fetchall()
   gameCount = int(len(allGames))
   #Train Arrays
-  labels = np.zeros(gameCount)
-  team1GoalsScoredThiSseason  = np.zeros(gameCount)
-  team2GoalsScoredThisSeason = np.zeros(gameCount)
-  team1GoalsAllowedThisSeason = np.zeros(gameCount)
-  team2GoalsAllowedThisSeason = np.zeros(gameCount)
-  team1GoalsScoredThisSeasonOpponent = np.zeros(gameCount)
-  team2GoalsScoredThisSeasonOpponent = np.zeros(gameCount)
-  team1GoalsAllowedThisSeasonOpponent = np.zeros(gameCount)
-  team2GoalsAllowedThisSeasonOpponent = np.zeros(gameCount)
-  team1LifetimeGoalsScoredOpponent = np.zeros(gameCount)
-  team2LifetimeGoalsScoredOpponent = np.zeros(gameCount)
-  team1LifetimeGoalsAllowedOpponent = np.zeros(gameCount) 
-  team2LifetimeGoalsAllowedOpponent = np.zeros(gameCount)
-  team1SeasonWins = np.zeros(gameCount)
-  team2SeasonWins = np.zeros(gameCount)
-  team1SeasonLoss = np.zeros(gameCount)
-  team2SeasonLoss = np.zeros(gameCount)
-  team1SeasonTie = np.zeros(gameCount)
-  team2SeasonTie = np.zeros(gameCount)
-  team1SeasonOppWins = np.zeros(gameCount)
-  team2SeasonOppWins = np.zeros(gameCount)
-  team1SeasonOppLoss = np.zeros(gameCount)
-  team2SeasonOppLoss = np.zeros(gameCount)
-  team1SeasonOppTie = np.zeros(gameCount)
-  team2SeasonOppTie = np.zeros(gameCount)
-  team1LifetimeOppWins = np.zeros(gameCount)
-  team2LifetimeOppWins = np.zeros(gameCount)
-  team1LifetimeOppLoss = np.zeros(gameCount)
-  team2LifetimeOppLoss = np.zeros(gameCount)
-  team1LifetimeOppTie = np.zeros(gameCount)
-  team2LifetimeOppTie = np.zeros(gameCount)
+  labels = []
+  team1GoalsScoredThiSseason  = []
+  team2GoalsScoredThisSeason = []
+  team1GoalsAllowedThisSeason = []
+  team2GoalsAllowedThisSeason = []
+  team1GoalsScoredThisSeasonOpponent =  []
+  team2GoalsScoredThisSeasonOpponent = []
+  team1GoalsAllowedThisSeasonOpponent = [] 
+  team2GoalsAllowedThisSeasonOpponent = [] 
+  team1LifetimeGoalsScoredOpponent = [] 
+  team2LifetimeGoalsScoredOpponent = [] 
+  team1LifetimeGoalsAllowedOpponent = [] 
+  team2LifetimeGoalsAllowedOpponent = []
+  team1SeasonWins = [] 
+  team2SeasonWins = [] 
+  team1SeasonLoss = [] 
+  team2SeasonLoss = [] 
+  team1SeasonTie = [] 
+  team2SeasonTie = [] 
+  team1SeasonOppWins = [] 
+  team2SeasonOppWins = [] 
+  team1SeasonOppLoss = [] 
+  team2SeasonOppLoss = [] 
+  team1SeasonOppTie = [] 
+  team2SeasonOppTie = [] 
+  team1LifetimeOppWins = [] 
+  team2LifetimeOppWins = [] 
+  team1LifetimeOppLoss = [] 
+  team2LifetimeOppLoss = [] 
+  team1LifetimeOppTie = []
+  team2LifetimeOppTie = []
 
   # Test Arrays
-  testLabels = np.zeros(gameCount)
-  testTeam1GoalsScoredThiSseason  = np.zeros(gameCount)
-  testTeam2GoalsScoredThisSeason = np.zeros(gameCount)
-  testTeam1GoalsAllowedThisSeason = np.zeros(gameCount)
-  testTeam2GoalsAllowedThisSeason = np.zeros(gameCount)
-  testTeam1GoalsScoredThisSeasonOpponent = np.zeros(gameCount)
-  testTeam2GoalsScoredThisSeasonOpponent = np.zeros(gameCount)
-  testTeam1GoalsAllowedThisSeasonOpponent = np.zeros(gameCount)
-  testTeam2GoalsAllowedThisSeasonOpponent = np.zeros(gameCount)
-  testTeam1LifetimeGoalsScoredOpponent = np.zeros(gameCount)
-  testTeam2LifetimeGoalsScoredOpponent = np.zeros(gameCount)
-  testTeam1LifetimeGoalsAllowedOpponent = np.zeros(gameCount)
-  testTeam2LifetimeGoalsAllowedOpponent = np.zeros(gameCount)
-  testTeam1SeasonWins = np.zeros(gameCount)
-  testTeam2SeasonWins = np.zeros(gameCount)
-  testTeam1SeasonLoss = np.zeros(gameCount)
-  testTeam2SeasonLoss = np.zeros(gameCount)
-  testTeam1SeasonTie = np.zeros(gameCount)
-  testTeam2SeasonTie = np.zeros(gameCount)
-  testTeam1SeasonOppWins = np.zeros(gameCount)
-  testTeam2SeasonOppWins = np.zeros(gameCount)
-  testTeam1SeasonOppLoss = np.zeros(gameCount)
-  testTeam2SeasonOppLoss = np.zeros(gameCount)
-  testTeam1SeasonOppTie = np.zeros(gameCount)
-  testTeam2SeasonOppTie = np.zeros(gameCount)
-  testTeam1LifetimeOppWins = np.zeros(gameCount)
-  testTeam2LifetimeOppWins = np.zeros(gameCount)
-  testTeam1LifetimeOppLoss = np.zeros(gameCount)
-  testTeam2LifetimeOppLoss = np.zeros(gameCount)
-  testTeam1LifetimeOppTie = np.zeros(gameCount)
-  testTeam2LifetimeOppTie = np.zeros(gameCount)
+  testLabels = []
+  testTeam1GoalsScoredThiSseason  = []
+  testTeam2GoalsScoredThisSeason = []
+  testTeam1GoalsAllowedThisSeason = []
+  testTeam2GoalsAllowedThisSeason = []
+  testTeam1GoalsScoredThisSeasonOpponent = []
+  testTeam2GoalsScoredThisSeasonOpponent = []
+  testTeam1GoalsAllowedThisSeasonOpponent = []
+  testTeam2GoalsAllowedThisSeasonOpponent = []
+  testTeam1LifetimeGoalsScoredOpponent = []
+  testTeam2LifetimeGoalsScoredOpponent = []
+  testTeam1LifetimeGoalsAllowedOpponent = []
+  testTeam2LifetimeGoalsAllowedOpponent = []
+  testTeam1SeasonWins = [] 
+  testTeam2SeasonWins = [] 
+  testTeam1SeasonLoss = [] 
+  testTeam2SeasonLoss = [] 
+  testTeam1SeasonTie = []
+  testTeam2SeasonTie = []
+  testTeam1SeasonOppWins = [] 
+  testTeam2SeasonOppWins = [] 
+  testTeam1SeasonOppLoss = [] 
+  testTeam2SeasonOppLoss = [] 
+  testTeam1SeasonOppTie = []
+  testTeam2SeasonOppTie = []
+  testTeam1LifetimeOppWins = []
+  testTeam2LifetimeOppWins = []
+  testTeam1LifetimeOppLoss = []
+  testTeam2LifetimeOppLoss = []
+  testTeam1LifetimeOppTie = []
+  testTeam2LifetimeOppTie = []
   i = 0
 
   for game in allGames:
-    if game[1] != '2017':
-      team1GoalsScoredThiSseason[i] = int(game[12])
-      team2GoalsScoredThisSeason[i] = int(game[13]) 
-      team1GoalsAllowedThisSeason[i] = int(game[13])
-      team2GoalsAllowedThisSeason[i] = int(game[14]) 
-      team1GoalsScoredThisSeasonOpponent[i] = int(game[15]) 
-      team2GoalsScoredThisSeasonOpponent[i] = int(game[16])
-      team1GoalsAllowedThisSeasonOpponent[i] = int(game[17])
-      team2GoalsAllowedThisSeasonOpponent[i] = int(game[18]) 
-      team1LifetimeGoalsScoredOpponent[i] = int(game[19]) 
-      team2LifetimeGoalsScoredOpponent[i] = int(game[20]) 
-      team1LifetimeGoalsAllowedOpponent[i] = int(game[21]) 
-      team2LifetimeGoalsAllowedOpponent[i] = int(game[22]) 
-      team1SeasonWins[i] = int(game[23]) 
-      team2SeasonWins[i] = int(game[24]) 
-      team1SeasonLoss[i] = int(game[25]) 
-      team2SeasonLoss[i] = int(game[26])
-      team1SeasonTie[i] = int(game[27]) 
-      team2SeasonTie[i] = int(game[28]) 
-      team1SeasonOppWins[i] = int(game[29]) 
-      team2SeasonOppWins[i] = int(game[30]) 
-      team1SeasonOppLoss[i] = int(game[31]) 
-      team2SeasonOppLoss[i] = int(game[32]) 
-      team1SeasonOppTie[i] = int(game[33])
-      team2SeasonOppTie[i] = int(game[34]) 
-      team1LifetimeOppWins[i] = int(game[35])
-      team2LifetimeOppWins[i] = int(game[36]) 
-      team1LifetimeOppLoss[i] = int(game[37])
-      team2LifetimeOppLoss[i] = int(game[38]) 
-      team1LifetimeOppTie[i] = int(game[39]) 
-      team2LifetimeOppTie[i] = int(game[40]) 
+    date = dt.strptime(game[2], "%Y-%m-%d")
+    cutoffDate = dt.strptime('2017-08-01', "%Y-%m-%d")
+    curDate = now.strftime("%Y-%m-%d)
 
-      labels[i] = int(game[8])
-    else:
-      testTeam1GoalsScoredThiSseason[i] = int(game[12])
-      testTeam2GoalsScoredThisSeason[i] = int(game[13]) 
-      testTeam1GoalsAllowedThisSeason[i] = int(game[13])
-      testTeam2GoalsAllowedThisSeason[i] = int(game[14]) 
-      testTeam1GoalsScoredThisSeasonOpponent[i] = int(game[15]) 
-      testTeam2GoalsScoredThisSeasonOpponent[i] = int(game[16])
-      testTeam1GoalsAllowedThisSeasonOpponent[i] = int(game[17])
-      testTeam2GoalsAllowedThisSeasonOpponent[i] = int(game[18]) 
-      testTeam1LifetimeGoalsScoredOpponent[i] = int(game[19]) 
-      testTeam2LifetimeGoalsScoredOpponent[i] = int(game[20]) 
-      testTeam1LifetimeGoalsAllowedOpponent[i] = int(game[21]) 
-      testTeam2LifetimeGoalsAllowedOpponent[i] = int(game[22]) 
-      testTeam1SeasonWins[i] = int(game[23]) 
-      testTeam2SeasonWins[i] = int(game[24]) 
-      testTeam1SeasonLoss[i] = int(game[25]) 
-      testTeam2SeasonLoss[i] = int(game[26])
-      testTeam1SeasonTie[i] = int(game[27]) 
-      testTeam2SeasonTie[i] = int(game[28]) 
-      testTeam1SeasonOppWins[i] = int(game[29]) 
-      testTeam2SeasonOppWins[i] = int(game[30]) 
-      testTeam1SeasonOppLoss[i] = int(game[31]) 
-      testTeam2SeasonOppLoss[i] = int(game[32]) 
-      testTeam1SeasonOppTie[i] = int(game[33])
-      testTeam2SeasonOppTie[i] = int(game[34]) 
-      testTeam1LifetimeOppWins[i] = int(game[35])
-      testTeam2LifetimeOppWins[i] = int(game[36]) 
-      testTeam1LifetimeOppLoss[i] = int(game[37])
-      testTeam2LifetimeOppLoss[i] = int(game[38]) 
-      testTeam1LifetimeOppTie[i] = int(game[39]) 
-      testTeam2LifetimeOppTie[i] = int(game[40]) 
+    if date < cutoffDate and date < curDate:
+      team1GoalsScoredThiSseason.append(int(game[12]))
+      team2GoalsScoredThisSeason.append(int(game[13]))
+      team1GoalsAllowedThisSeason.append(int(game[13]))
+      team2GoalsAllowedThisSeason.append(int(game[14]))
+      team1GoalsScoredThisSeasonOpponent.append(int(game[15]))
+      team2GoalsScoredThisSeasonOpponent.append(int(game[16]))
+      team1GoalsAllowedThisSeasonOpponent.append(int(game[17]))
+      team2GoalsAllowedThisSeasonOpponent.append(int(game[18]))
+      team1LifetimeGoalsScoredOpponent.append(int(game[19]))
+      team2LifetimeGoalsScoredOpponent.append(int(game[20]))
+      team1LifetimeGoalsAllowedOpponent.append(int(game[21]))
+      team2LifetimeGoalsAllowedOpponent.append(int(game[22]))
+      team1SeasonWins.append(int(game[23]))
+      team2SeasonWins.append(int(game[24]))
+      team1SeasonLoss.append(int(game[25]))
+      team2SeasonLoss.append(int(game[26]))
+      team1SeasonTie.append(int(game[27]))
+      team2SeasonTie.append(int(game[28]))
+      team1SeasonOppWins.append(int(game[29]))
+      team2SeasonOppWins.append(int(game[30]))
+      team1SeasonOppLoss.append(int(game[31]))
+      team2SeasonOppLoss.append(int(game[32]))
+      team1SeasonOppTie.append(int(game[33]))
+      team2SeasonOppTie.append(int(game[34]))
+      team1LifetimeOppWins.append(int(game[35]))
+      team2LifetimeOppWins.append(int(game[36]))
+      team1LifetimeOppLoss.append(int(game[37]))
+      team2LifetimeOppLoss.append(int(game[38]))
+      team1LifetimeOppTie.append(int(game[39]))
+      team2LifetimeOppTie.append(int(game[40]))
 
-      testLabels[i] = int(game[8])
+      labels.append(int(game[8]))
+    elif date < curDate:
+      testTeam1GoalsScoredThiSseason.append(int(game[12]))
+      testTeam2GoalsScoredThisSeason.append(int(game[13]))
+      testTeam1GoalsAllowedThisSeason.append(int(game[13]))
+      testTeam2GoalsAllowedThisSeason.append(int(game[14]))
+      testTeam1GoalsScoredThisSeasonOpponent.append(int(game[15]))
+      testTeam2GoalsScoredThisSeasonOpponent.append(int(game[16]))
+      testTeam1GoalsAllowedThisSeasonOpponent.append(int(game[17]))
+      testTeam2GoalsAllowedThisSeasonOpponent.append(int(game[18]))
+      testTeam1LifetimeGoalsScoredOpponent.append(int(game[19]))
+      testTeam2LifetimeGoalsScoredOpponent.append(int(game[20]))
+      testTeam1LifetimeGoalsAllowedOpponent.append(int(game[21]))
+      testTeam2LifetimeGoalsAllowedOpponent.append(int(game[22]))
+      testTeam1SeasonWins.append(int(game[23]))
+      testTeam2SeasonWins.append(int(game[24]))
+      testTeam1SeasonLoss.append(int(game[25]))
+      testTeam2SeasonLoss.append(int(game[26]))
+      testTeam1SeasonTie.append(int(game[27]))
+      testTeam2SeasonTie.append(int(game[28]))
+      testTeam1SeasonOppWins.append(int(game[29]))
+      testTeam2SeasonOppWins.append(int(game[30]))
+      testTeam1SeasonOppLoss.append(int(game[31]))
+      testTeam2SeasonOppLoss.append(int(game[32]))
+      testTeam1SeasonOppTie.append(int(game[33]))
+      testTeam2SeasonOppTie.append(int(game[34]))
+      testTeam1LifetimeOppWins.append(int(game[35]))
+      testTeam2LifetimeOppWins.append(int(game[36]))
+      testTeam1LifetimeOppLoss.append(int(game[37]))
+      testTeam2LifetimeOppLoss.append(int(game[38]))
+      testTeam1LifetimeOppTie.append(int(game[39]))
+      testTeam2LifetimeOppTie.append(int(game[40]))
+
+      testLabels.append(int(game[8]))
 
     i += 1
 
@@ -223,32 +221,10 @@ def load_data():
     'team2LifetimeOppTie': testTeam2LifetimeOppTie
   }
 
-  labels.astype(int)
-  testLabels.astype(int)
-
   return (features, labels), (testFeatures, testLabels)
 
-  
-# features = {'SepalLength': np.array([6.4, 5.0]),
-#                'SepalWidth':  np.array([2.8, 2.3]),
-#                'PetalLength': np.array([5.6, 3.3]),
-#                'PetalWidth':  np.array([2.2, 1.0])}
-#    labels = np.array([2, 1])
-#    return features, labels
-
-
-  # train_path, test_path = maybe_download()
-  # train = pd.read_csv(train_path, names=CSV_COLUMN_NAMES, header=0)
-  #train_x, train_y = train, train.pop(y_name)
-  
-  #test = pd.read_csv(test_path, names=CSV_COLUMN_NAMES, header=0)
-  #test_x, test_y = test, test.pop(y_name)
-  
-  #return (train_x, train_y), (test_x, test_y)
-
-
 def train_input_fn(features, labels, batch_size):
-  labels = labels.astype(int)
+  #labels = list(map(int, labels))
   """An input function for training"""
   # Convert the inputs to a Dataset.
   dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
@@ -259,9 +235,9 @@ def train_input_fn(features, labels, batch_size):
   # Return the dataset.
   return dataset
 
-
 def eval_input_fn(features, labels, batch_size):
-  labels = labels.astype(int)
+  #labels = labels.astype(int)
+  #labels = list(map(int, labels))
   """An input function for evaluation or prediction"""
   features=dict(features)
   if labels is None:
@@ -279,3 +255,154 @@ def eval_input_fn(features, labels, batch_size):
 
   # Return the dataset.
   return dataset
+
+def upcoming_games():
+  conn = sqlite3.connect('matches.db')
+  cursor = conn.cursor()
+  cursor.execute('SELECT * FROM match')
+  allGames = cursor.fetchall()
+
+  team1GoalsScoredThiSseason  = []
+  team2GoalsScoredThisSeason = []
+  team1GoalsAllowedThisSeason = []
+  team2GoalsAllowedThisSeason = []
+  team1GoalsScoredThisSeasonOpponent =  []
+  team2GoalsScoredThisSeasonOpponent = []
+  team1GoalsAllowedThisSeasonOpponent = [] 
+  team2GoalsAllowedThisSeasonOpponent = [] 
+  team1LifetimeGoalsScoredOpponent = [] 
+  team2LifetimeGoalsScoredOpponent = [] 
+  team1LifetimeGoalsAllowedOpponent = [] 
+  team2LifetimeGoalsAllowedOpponent = []
+  team1SeasonWins = [] 
+  team2SeasonWins = [] 
+  team1SeasonLoss = [] 
+  team2SeasonLoss = [] 
+  team1SeasonTie = [] 
+  team2SeasonTie = [] 
+  team1SeasonOppWins = [] 
+  team2SeasonOppWins = [] 
+  team1SeasonOppLoss = [] 
+  team2SeasonOppLoss = [] 
+  team1SeasonOppTie = [] 
+  team2SeasonOppTie = [] 
+  team1LifetimeOppWins = [] 
+  team2LifetimeOppWins = [] 
+  team1LifetimeOppLoss = [] 
+  team2LifetimeOppLoss = [] 
+  team1LifetimeOppTie = []
+  team2LifetimeOppTie = []
+
+  for game in allGames:
+    date = dt.strptime(game[2], "%Y-%m-%d")
+    curDate = now.strftime("%Y-%m-%d)
+
+    if date > curDate:
+      team1GoalsScoredThiSseason.append(int(game[12]))
+      team2GoalsScoredThisSeason.append(int(game[13]))
+      team1GoalsAllowedThisSeason.append(int(game[13]))
+      team2GoalsAllowedThisSeason.append(int(game[14]))
+      team1GoalsScoredThisSeasonOpponent.append(int(game[15]))
+      team2GoalsScoredThisSeasonOpponent.append(int(game[16]))
+      team1GoalsAllowedThisSeasonOpponent.append(int(game[17]))
+      team2GoalsAllowedThisSeasonOpponent.append(int(game[18]))
+      team1LifetimeGoalsScoredOpponent.append(int(game[19]))
+      team2LifetimeGoalsScoredOpponent.append(int(game[20]))
+      team1LifetimeGoalsAllowedOpponent.append(int(game[21]))
+      team2LifetimeGoalsAllowedOpponent.append(int(game[22]))
+      team1SeasonWins.append(int(game[23]))
+      team2SeasonWins.append(int(game[24]))
+      team1SeasonLoss.append(int(game[25]))
+      team2SeasonLoss.append(int(game[26]))
+      team1SeasonTie.append(int(game[27]))
+      team2SeasonTie.append(int(game[28]))
+      team1SeasonOppWins.append(int(game[29]))
+      team2SeasonOppWins.append(int(game[30]))
+      team1SeasonOppLoss.append(int(game[31]))
+      team2SeasonOppLoss.append(int(game[32]))
+      team1SeasonOppTie.append(int(game[33]))
+      team2SeasonOppTie.append(int(game[34]))
+      team1LifetimeOppWins.append(int(game[35]))
+      team2LifetimeOppWins.append(int(game[36]))
+      team1LifetimeOppLoss.append(int(game[37]))
+      team2LifetimeOppLoss.append(int(game[38]))
+      team1LifetimeOppTie.append(int(game[39]))
+      team2LifetimeOppTie.append(int(game[40]))
+
+  features = {
+    'team1GoalsScoredThiSseason': team1GoalsScoredThiSseason,
+    'team2GoalsScoredThisSeason': team2GoalsScoredThisSeason,
+    'team1GoalsAllowedThisSeason': team1GoalsAllowedThisSeason,
+    'team2GoalsAllowedThisSeason': team2GoalsAllowedThisSeason,
+    'team1GoalsScoredThisSeasonOpponent': team1GoalsScoredThisSeasonOpponent,
+    'team2GoalsScoredThisSeasonOpponent': team2GoalsScoredThisSeasonOpponent,
+    'team1GoalsAllowedThisSeasonOpponent': team1GoalsAllowedThisSeasonOpponent,
+    'team2GoalsAllowedThisSeasonOpponent': team2GoalsAllowedThisSeasonOpponent,
+    'team1LifetimeGoalsScoredOpponent': team1LifetimeGoalsScoredOpponent,
+    'team2LifetimeGoalsScoredOpponent': team2LifetimeGoalsScoredOpponent,
+    'team1LifetimeGoalsAllowedOpponent': team1LifetimeGoalsAllowedOpponent,
+    'team2LifetimeGoalsAllowedOpponent': team2LifetimeGoalsAllowedOpponent,
+    'team1SeasonWins': team1SeasonWins,
+    'team2SeasonWins': team2SeasonWins,
+    'team1SeasonLoss': team1SeasonLoss,
+    'team2SeasonLoss': team2SeasonLoss,
+    'team1SeasonTie': team1SeasonTie,
+    'team2SeasonTie': team2SeasonTie,
+    'team1SeasonOppWins': team1SeasonOppWins,
+    'team2SeasonOppWins': team2SeasonOppWins,
+    'team1SeasonOppLoss': team1SeasonOppLoss,
+    'team2SeasonOppLoss': team2SeasonOppLoss,
+    'team1SeasonOppTie': team1SeasonOppTie,
+    'team2SeasonOppTie': team2SeasonOppTie,
+    'team1LifetimeOppWins': team1LifetimeOppWins,
+    'team2LifetimeOppWins': team2LifetimeOppWins,
+    'team1LifetimeOppLoss': team1LifetimeOppLoss,
+    'team2LifetimeOppLoss': team2LifetimeOppLoss,
+    'team1LifetimeOppTie': team1LifetimeOppTie,
+    'team2LifetimeOppTie': team2LifetimeOppTie
+  }
+  return features
+
+getValuesForTeams(home, guest):
+  # Home and guest values should be Id's
+  if int(home) > 0 and int(guest) > 0:
+    conn = sqlite3.connect('matches.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM match WHERE team1 = ' + home + ' AND team2 =' + guest)
+    allGamesForTeam = cursor.fetchall()
+    if len(allGamesForTeam) > 0:
+      latestGame = allGamesForTeam[-1]
+
+      features = {
+        'team1GoalsScoredThiSseason': [int(latestGame[12])],
+        'team2GoalsScoredThisSeason': [int(latestGame[13])],
+        'team1GoalsAllowedThisSeason': [int(latestGame[14])],
+        'team2GoalsAllowedThisSeason': [int(latestGame[15])],
+        'team1GoalsScoredThisSeasonOpponent': [int(latestGame[16])],
+        'team2GoalsScoredThisSeasonOpponent': [int(latestGame[17])],
+        'team1GoalsAllowedThisSeasonOpponent': [int(latestGame[18])],
+        'team2GoalsAllowedThisSeasonOpponent': [int(latestGame[19])],
+        'team1LifetimeGoalsScoredOpponent': [int(latestGame[20])],
+        'team2LifetimeGoalsScoredOpponent': [int(latestGame[21])],
+        'team1LifetimeGoalsAllowedOpponent': [int(latestGame[22])],
+        'team2LifetimeGoalsAllowedOpponent': [int(latestGame[23])],
+        'team1SeasonWins': [int(latestGame[24])],
+        'team2SeasonWins': [int(latestGame[25])],
+        'team1SeasonLoss': [int(latestGame[26])],
+        'team2SeasonLoss': [int(latestGame[27])],
+        'team1SeasonTie': [int(latestGame[28])],
+        'team2SeasonTie': [int(latestGame[29])],
+        'team1SeasonOppWins': [int(latestGame[30])],
+        'team2SeasonOppWins': [int(latestGame[31])],
+        'team1SeasonOppLoss': [int(latestGame[32])],
+        'team2SeasonOppLoss': [int(latestGame[33])],
+        'team1SeasonOppTie': [int(latestGame[34])],
+        'team2SeasonOppTie': [int(latestGame[35])],
+        'team1LifetimeOppWins': [int(latestGame[36])],
+        'team2LifetimeOppWins': [int(latestGame[37])],
+        'team1LifetimeOppLoss': [int(latestGame[38])],
+        'team2LifetimeOppLoss': [int(latestGame[39])],
+        'team1LifetimeOppTie': [int(latestGame[40])],
+        'team2LifetimeOppTie': [int(latestGame[41])]
+      }
+    return features

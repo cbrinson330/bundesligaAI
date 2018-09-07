@@ -9,12 +9,15 @@ from datetime import datetime as dt
 def exploreFile():
     conn = sqlite3.connect('matches.db')
     c = conn.cursor()
-    c.execute('SELECT * FROM match LIMIT 10 offset 1000')
+    c.execute('SELECT * FROM match LIMIT 3 offset 1300')
 
     someGames = c.fetchall()
     for game in someGames:
-        print(game)
-
+        print('---------------')
+        print(game[39])
+        print(game[40])
+        print(game[41])
+        print('---------------')
     conn.close()
 
 if __name__ == "__main__":

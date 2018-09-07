@@ -42,7 +42,7 @@ def main(argv):
     classifier = tf.estimator.DNNClassifier(
         feature_columns=my_feature_columns,
         # Two hidden layers of 10 nodes each.
-        hidden_units=[10, 10],
+        hidden_units=[64, 32, 16],
         # The model must choose between 3 classes.
         n_classes=3)
 
@@ -60,52 +60,21 @@ def main(argv):
     print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
 
     # Generate predictions from the model
-    expected = ['Win', 'Loss', 'tie']
-    predict_x = {
-        'team1GoalsScoredThiSseason': [],
-        'team2GoalsScoredThisSeason': [],
-        'team1GoalsAllowedThisSeason': [],
-        'team2GoalsAllowedThisSeason': [],
-        'team1GoalsScoredThisSeasonOpponent': [],
-        'team2GoalsScoredThisSeasonOpponent': [],
-        'team1GoalsAllowedThisSeasonOpponent': [],
-        'team2GoalsAllowedThisSeasonOpponent': [],
-        'team1LifetimeGoalsScoredOpponent': [],
-        'team2LifetimeGoalsScoredOpponent': [],
-        'team1LifetimeGoalsAllowedOpponent': [],
-        'team2LifetimeGoalsAllowedOpponent': [],
-        'team1SeasonWins': [],
-        'team2SeasonWins': [],
-        'team1SeasonLoss': [],
-        'team2SeasonLoss': [],
-        'team1SeasonTie': [],
-        'team2SeasonTie': [],
-        'team1SeasonOppWins': [],
-        'team2SeasonOppWins': [],
-        'team1SeasonOppLoss': [],
-        'team2SeasonOppLoss': team2SeasonOppLoss,
-        'team1SeasonOppTie': team1SeasonOppTie,
-        'team2SeasonOppTie': team2SeasonOppTie,
-        'team1LifetimeOppWins': team1LifetimeOppWins,
-        'team2LifetimeOppWins': team2LifetimeOppWins,
-        'team1LifetimeOppLoss': team1LifetimeOppLoss,
-        'team2LifetimeOppLoss': team2LifetimeOppLoss,
-        'team1LifetimeOppTie': team1LifetimeOppTie,
-        'team2LifetimeOppTie': team2LifetimeOppTie
-    }
+    #expected = ['Win', 'Tie', 'Loss']
+    predict_x = matchData.upcoming_games()
 
     predictions = classifier.predict(
         input_fn=lambda:matchData.eval_input_fn(predict_x,
                                                 labels=None,
                                                 batch_size=args.batch_size))
 
-    template = ('\nPrediction is "{}" ({:.1f}%), expected "{}"')
+    template = ('\nPrediction is "{}" ({:.1f}%)')
 
     for pred_dict, expec in zip(predictions, expected):
         class_id = pred_dict['class_ids'][0]
         probability = pred_dict['probabilities'][class_id]
 
-        print(template.format(iris_data.SPECIES[class_id],
+        print(template.format(matchData.OUTCOMES[class_id],
                               100 * probability, expec))
 
 

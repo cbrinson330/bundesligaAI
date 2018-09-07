@@ -93,7 +93,7 @@ class matchCls():
     return query
 
 def exploreFile():
-  files = ['2013', '2014', '2015', '2016', '2017']
+  files = ['2013', '2014', '2015', '2016', '2017', '2018']
   conn = sqlite3.connect('matches.db')
   c = conn.cursor()
   createTables(conn,c)
@@ -324,14 +324,14 @@ def checkIfTeamsExist(teamOneName, teamOneId, teamTwoName, teamTwoId, cursor):
       teamTwoExists = True
   
   if not teamOneExists:
-    teamToInsert = [(teamOneId,teamOneName)]
+    teamToInsert = [(int(teamOneId),teamOneName)]
     cursor.executemany('INSERT INTO team VALUES (?,?)', teamToInsert)
   if not teamTwoExists:
-    teamToInsert = [(teamTwoId,teamTwoName)]
+    teamToInsert = [(int(teamTwoId),teamTwoName)]
     cursor.executemany('INSERT INTO team VALUES (?,?)', teamToInsert)
 
 def reviewData(cursor):
-  cursor.execute('SELECT * FROM match LIMIT 10 offset 1000')
+  cursor.execute('SELECT * FROM match LIMIT 10 offset 1448')
 
   someGames = cursor.fetchall()
   for game in someGames:
